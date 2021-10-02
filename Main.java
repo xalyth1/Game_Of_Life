@@ -11,6 +11,10 @@ public class Main {
 //        game.universe.createUniverse();
 //        game.doSimulation(game.universe, game);
 
+
+
+
+        //this
         //new Thread(game).start();
         //game.special();
         //SwingUtilities.invokeLater(game);
