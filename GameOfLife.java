@@ -2,9 +2,13 @@ package life;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.util.Hashtable;
 import java.util.Random;
 
 public class GameOfLife extends JFrame implements Runnable{
@@ -22,6 +26,16 @@ public class GameOfLife extends JFrame implements Runnable{
     boolean started = false;
     Universe universe;
     boolean newSimulation = true;
+
+    int timeMillis = 90;
+    Color cellsColor = Color.BLACK;
+
+    int previouslyAlive;
+    int currentAlive;
+
+    int startXofPanel = 25;
+    int chartPanelX = startXofPanel;
+
 
     public GameOfLife() {
         init();
@@ -64,6 +78,7 @@ public class GameOfLife extends JFrame implements Runnable{
 
     void doSimulation(Universe universe, GameOfLife game) {
         newSimulation = false;
+        started = true;
         System.out.println("simulation starts");
         //universe.createUniverse();
         int generations = 500;
@@ -77,41 +92,21 @@ public class GameOfLife extends JFrame implements Runnable{
 
             this.repaint();
 
-
-            //System.out.println("after repaint " + i  + " adf");
-
-
             if (newSimulation) {
-
                 break;
             }
 
-            sleep(90);
+            sleep(timeMillis);
             while (!game.started && !newSimulation) {
                 sleep(50);
             }
-
-
-
-//
-//            while (!game.started) {
-//                sleep(50);
-//            }
-//
-//            if (game.newSimulation) {
-//                break;
-//            }
-
         }
         System.out.println("wjscie z doSimulation()");
         newSimulation = true;
-
     }
     @Override
     public void run() {
-
         System.out.println("run starts");
-
         doSimulation(universe, this);
         while (newSimulation) {
             this.setUniverse(new Universe(35, new Random()));
@@ -119,12 +114,9 @@ public class GameOfLife extends JFrame implements Runnable{
             this.state = universe.current;
             doSimulation(universe, this);
         }
-
     }
 
-    public void setUniverse(Universe universe) {
-        this.universe = universe;
-    }
+
 
     void initComponents(int n) {
         this.n = n;
@@ -139,8 +131,6 @@ public class GameOfLife extends JFrame implements Runnable{
 
         aliveLabel.setName("AliveLabel");
         aliveLabel.setFont(new Font( "Calabri", Font.BOLD, 22));
-//        generationLabel.setAlignmentX(0);
-//        generationLabel.setAlignmentY(0);
 
         optionsPanel = new JPanel();
         BoxLayout optionsBoxLayout = new BoxLayout(optionsPanel, BoxLayout.Y_AXIS);
@@ -150,13 +140,15 @@ public class GameOfLife extends JFrame implements Runnable{
         vBox.add(generationLabel);
         vBox.add(aliveLabel);
 
+
         JButton nextButton = new JButton("N");
         JToggleButton startPauseButton = new JToggleButton();
 
         startPauseButton.setName("PlayToggleButton");
         JButton refreshButton = new JButton();
         refreshButton.setName("ResetButton");
-        startPauseButton.setToolTipText("Start / Pause simulation.");
+        refreshButton.setToolTipText("Start new simulation");
+        startPauseButton.setToolTipText("Start / Pause currentsimulation");
         startPauseButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -166,6 +158,7 @@ public class GameOfLife extends JFrame implements Runnable{
                 } else {
                     startPauseButton.setIcon(new ImageIcon("C:\\Users\\Pawel\\IdeaProjects\\Game of Life\\Game of Life\\task\\src\\myResources\\pause.png"));
                     started = true;
+                    chartPanelX = startXofPanel;
                 }
 
             }
@@ -179,18 +172,27 @@ public class GameOfLife extends JFrame implements Runnable{
         });
 
 
+        int MILLIS_MIN = 10;
+        int MILLIS_MAX = 250;
+        int MILLIS_INIT = 90;
+        JSlider speedSlider = new JSlider(JSlider.HORIZONTAL, MILLIS_MIN, MILLIS_MAX , MILLIS_INIT);
+
+        speedSlider.addChangeListener(new MyListener(this));
+
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+        labelTable.put(250, new JLabel("Fast") );
+        labelTable.put(125, new JLabel("Medium") );
+        labelTable.put(10, new JLabel("Slow"));
+        speedSlider.setLabelTable(labelTable);
+        speedSlider.setPaintLabels(true);
+
         try {
             startPauseButton.setIcon(new ImageIcon("C:\\Users\\Pawel\\IdeaProjects\\Game of Life\\Game of Life\\task\\src\\myResources\\pause.png"));
             refreshButton.setIcon(new ImageIcon("C:\\Users\\Pawel\\IdeaProjects\\Game of Life\\Game of Life\\task\\src\\myResources\\reload.png"));
         } catch (Exception ex) {
             System.out.println(ex);
         }
-//        Box hBox = Box.createHorizontalBox();
-//        hBox.add(nextButton);
-//        hBox.add(startPauseButton);
-//        hBox.add(refreshButton);
-//        hBox.setMaximumSize(new Dimension(50, 30));
-        //vBox.add(hBox);
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.add(nextButton);
@@ -198,16 +200,124 @@ public class GameOfLife extends JFrame implements Runnable{
         buttonPanel.add(refreshButton);
         buttonPanel.setBackground(Color.RED);
         buttonPanel.setAlignmentX(0);
+        buttonPanel.setSize(new Dimension(200, 50));
+        buttonPanel.setPreferredSize(new Dimension(200, 50));
+        buttonPanel.setMaximumSize(new Dimension(200, 50));
 
-//        vBox.setAlignmentX(Component.TOP_ALIGNMENT);
-//        vBox.setAlignmentY(Component.TOP_ALIGNMENT);
+
+
+
+
+        JPanel sliderPanel = new JPanel();
+        sliderPanel.setLayout(new FlowLayout());
+        sliderPanel.add(speedSlider);
+        sliderPanel.setAlignmentX(0);
+        sliderPanel.setAlignmentY(0);
+        sliderPanel.setMaximumSize(new Dimension(200, 50));
+
+
+
+        JButton chooseColorButton = new JButton("Choose cells color");
+        chooseColorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                Color newColor = JColorChooser.showDialog(
+                        null,
+                        "Choose Background Color",
+                        Color.BLACK);
+                cellsColor = newColor;
+
+            }
+        });
+
+
+        JSlider cellsSlider = new JSlider(JSlider.HORIZONTAL, 5, 50 , 35);
+        //cellsSlider.setMaximumSize(new Dimension(200, 50));
+
+        cellsSlider.setAlignmentX(0);
+        cellsSlider.setAlignmentY(0);
+        cellsSlider.setEnabled(false);
+
+
+
+        JPanel sliderPanel2 = new JPanel();
+        sliderPanel2.setLayout(new FlowLayout());
+        sliderPanel2.add(cellsSlider);
+        sliderPanel2.setAlignmentX(0);
+        sliderPanel2.setAlignmentY(0);
+        sliderPanel2.setMaximumSize(new Dimension(200, 50));
+
+
+        BufferedImage clearImg = new BufferedImage(400, 400,BufferedImage.TYPE_INT_RGB);
+        BufferedImage img = prepareBufferedImage(clearImg);
+        JPanel chartPanel = new JPanel() {
+            BufferedImage canvas = img;
+            long counter = 0;
+
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D paintBrush = canvas.createGraphics();
+
+
+                //System.out.println("counter pc " + counter);
+
+                currentAlive = universe.algo.countAliveCells();
+                paintBrush.drawLine( chartPanelX - 1, 400 - previouslyAlive, chartPanelX, 400 - currentAlive);
+                paintBrush.dispose();
+                repaint();
+
+                if (counter % 150 == 0)
+                    chartPanelX++;
+
+                previouslyAlive = currentAlive;
+
+                //if (counter == 0 || counter % 100 == 0)
+                    g.drawImage(canvas, 0, 0, this);
+
+                ++counter;
+
+            }
+        };
+        chartPanel.setBackground(Color.WHITE);
+        chartPanel.setMaximumSize(new Dimension(400, 400));
+
+
+
+
+        //System.out.println(chartPanel.getX() + " , " + chartPanel.getY());
+
+//        cellsSlider.addChangeListener(new ChangeListener() {
+//            n = 9;
+//            @Override
+//            public void stateChanged(ChangeEvent changeEvent) {
+//                JSlider source = (JSlider)changeEvent.getSource();
+//                int num = source.getValue();
+//                if (started = false)
+//                    n = num;
+//            }
+//        });
+
+
+        //////
+//        vBox.add(buttonPanel);
+//        vBox.add(sliderPanel);
+        /////
+        //Box verticalBox2 = Box.createVerticalBox();
+        //verticalBox2.add(buttonPanel);
+        //verticalBox2.add(sliderPanel);
+
         optionsPanel.add(vBox);
         optionsPanel.add(buttonPanel);
+        optionsPanel.add(sliderPanel);
+        optionsPanel.add(chooseColorButton);
+        optionsPanel.add(sliderPanel2);
+        optionsPanel.add(chartPanel);
+
+        //optionsPanel.add(verticalBox2);
 
         optionsPanel.setBackground(new Color(222, 184, 134)); // Burly Wood
-
-        //optionsPanel.setSize(300,300);
-        //optionsPanel.add(Box.createVerticalStrut(0));
 
 
         gridPanel = createGridPanel();
@@ -221,6 +331,7 @@ public class GameOfLife extends JFrame implements Runnable{
 
         add(optionsPanel, BorderLayout.WEST);
         add(gridPanel, BorderLayout.CENTER);
+
 
         gridPanel.setBackground(Color.LIGHT_GRAY);
 
@@ -237,13 +348,19 @@ public class GameOfLife extends JFrame implements Runnable{
         pack();
     }
 
+    public BufferedImage prepareBufferedImage(BufferedImage img) {
+        Graphics2D paintBrush = img.createGraphics();
+        paintBrush.setColor(Color.RED);
+        paintBrush.drawLine( startXofPanel-10, 0, startXofPanel-10, 400 - startXofPanel + 10);
+        paintBrush.dispose();
+        //repaint();
+        return img;
 
+    }
 
     static void sleep(long millis) {
         try {
-            //Thread.sleep(millis);
             Thread.currentThread().sleep(millis);
-
         } catch (InterruptedException e) {
             System.out.println(e);
         }
@@ -269,6 +386,7 @@ public class GameOfLife extends JFrame implements Runnable{
                 for (int i = 0; i < n; i++) {
                     for (int j = 0; j < n; j++) {
                         if (state[i][j].equals("O")) {
+                            g.setColor(cellsColor);
                             g.fillRect(x + i * width, y + j * height, width, height);
                         }
                     }
@@ -276,12 +394,13 @@ public class GameOfLife extends JFrame implements Runnable{
 
             }
         };
-
     }
 
     public void paint(Graphics g) {
         super.paint(g);
     }
 
-
+    public void setUniverse(Universe universe) {
+        this.universe = universe;
+    }
 }
