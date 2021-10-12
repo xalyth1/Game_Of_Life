@@ -67,7 +67,7 @@ public class GameOfLife extends JFrame implements Runnable{
 
         pack();
 
-        this.setSize(900,650);
+        this.setSize(1180,650);
         this.setLocation(450, 100);
         setVisible(true);
         //doSimulation(universe, this);
@@ -264,7 +264,8 @@ public class GameOfLife extends JFrame implements Runnable{
                 //System.out.println("counter pc " + counter);
 
                 currentAlive = universe.algo.countAliveCells();
-                paintBrush.drawLine( chartPanelX - 1, 400 - previouslyAlive, chartPanelX, 400 - currentAlive);
+                if (counter > 1)
+                    paintBrush.drawLine( chartPanelX - 1, 400 - previouslyAlive, chartPanelX, 400 - currentAlive);
                 paintBrush.dispose();
                 repaint();
 
@@ -274,7 +275,7 @@ public class GameOfLife extends JFrame implements Runnable{
                 previouslyAlive = currentAlive;
 
                 //if (counter == 0 || counter % 100 == 0)
-                    g.drawImage(canvas, 0, 0, this);
+                g.drawImage(canvas, 0, 0, this);
 
                 ++counter;
 
@@ -282,6 +283,9 @@ public class GameOfLife extends JFrame implements Runnable{
         };
         chartPanel.setBackground(Color.WHITE);
         chartPanel.setMaximumSize(new Dimension(400, 400));
+        chartPanel.setMinimumSize(new Dimension(400, 400));
+        chartPanel.setPreferredSize(new Dimension(400, 400));
+        chartPanel.setAlignmentX(0);
 
 
 
@@ -313,7 +317,7 @@ public class GameOfLife extends JFrame implements Runnable{
         optionsPanel.add(sliderPanel);
         optionsPanel.add(chooseColorButton);
         optionsPanel.add(sliderPanel2);
-        optionsPanel.add(chartPanel);
+        //optionsPanel.add(chartPanel);
 
         //optionsPanel.add(verticalBox2);
 
@@ -331,6 +335,7 @@ public class GameOfLife extends JFrame implements Runnable{
 
         add(optionsPanel, BorderLayout.WEST);
         add(gridPanel, BorderLayout.CENTER);
+        add(chartPanel, BorderLayout.EAST);
 
 
         gridPanel.setBackground(Color.LIGHT_GRAY);
@@ -350,8 +355,12 @@ public class GameOfLife extends JFrame implements Runnable{
 
     public BufferedImage prepareBufferedImage(BufferedImage img) {
         Graphics2D paintBrush = img.createGraphics();
+
+
         paintBrush.setColor(Color.RED);
-        paintBrush.drawLine( startXofPanel-10, 0, startXofPanel-10, 400 - startXofPanel + 10);
+        paintBrush.drawString("400", 0, 15);
+
+        paintBrush.drawLine( startXofPanel, 0, startXofPanel, 400 - startXofPanel);
         paintBrush.dispose();
         //repaint();
         return img;
