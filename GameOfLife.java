@@ -36,6 +36,8 @@ public class GameOfLife extends JFrame implements Runnable{
     int startXofPanel = 25;
     int chartPanelX = startXofPanel;
 
+    //int previousChartPanelX = chartPanelX + 1;
+
 
     public GameOfLife() {
         init();
@@ -87,6 +89,7 @@ public class GameOfLife extends JFrame implements Runnable{
             universe.algo.nextGeneration();
             game.generationLabel.setText("Generation #" + i);
             game.generationLabel.repaint();
+            int currAlive = universe.algo.countAliveCells();
             game.aliveLabel.setText("Alive:  " + universe.algo.countAliveCells());
             game.state = universe.current;
 
@@ -100,6 +103,7 @@ public class GameOfLife extends JFrame implements Runnable{
             while (!game.started && !newSimulation) {
                 sleep(50);
             }
+            previouslyAlive = currAlive;
         }
         System.out.println("wjscie z doSimulation()");
         newSimulation = true;
@@ -158,7 +162,7 @@ public class GameOfLife extends JFrame implements Runnable{
                 } else {
                     startPauseButton.setIcon(new ImageIcon("C:\\Users\\Pawel\\IdeaProjects\\Game of Life\\Game of Life\\task\\src\\myResources\\pause.png"));
                     started = true;
-                    chartPanelX = startXofPanel;
+                    //chartPanelX = startXofPanel;
                 }
 
             }
@@ -248,7 +252,11 @@ public class GameOfLife extends JFrame implements Runnable{
         sliderPanel2.setMaximumSize(new Dimension(200, 50));
 
 
-        BufferedImage clearImg = new BufferedImage(400, 400,BufferedImage.TYPE_INT_RGB);
+        int imageWidth = 415;
+        int imageHeight = 415;
+
+
+        BufferedImage clearImg = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
         BufferedImage img = prepareBufferedImage(clearImg);
         JPanel chartPanel = new JPanel() {
             BufferedImage canvas = img;
@@ -264,8 +272,13 @@ public class GameOfLife extends JFrame implements Runnable{
                 //System.out.println("counter pc " + counter);
 
                 currentAlive = universe.algo.countAliveCells();
+
+
+
+
+
                 if (counter > 1)
-                    paintBrush.drawLine( chartPanelX - 1, 400 - previouslyAlive, chartPanelX, 400 - currentAlive);
+                    paintBrush.drawLine( chartPanelX, imageHeight - previouslyAlive, chartPanelX + 1, imageHeight - currentAlive);
                 paintBrush.dispose();
                 repaint();
 
@@ -275,7 +288,16 @@ public class GameOfLife extends JFrame implements Runnable{
                 previouslyAlive = currentAlive;
 
                 //if (counter == 0 || counter % 100 == 0)
+                //if (!newSimulation)
                 g.drawImage(canvas, 0, 0, this);
+
+                if (newSimulation) {
+                    int previousChartPanelX = 1;
+                    chartPanelX = 2;
+                }
+                if (!started) {
+                    //save last x
+                }
 
                 ++counter;
 
@@ -356,11 +378,20 @@ public class GameOfLife extends JFrame implements Runnable{
     public BufferedImage prepareBufferedImage(BufferedImage img) {
         Graphics2D paintBrush = img.createGraphics();
 
+        int imageWidth = img.getWidth();
+        int imageHeight = img.getHeight();
+        int scaleBufferX = 25;
+        int scaleBufferY = 25;
+
+
 
         paintBrush.setColor(Color.RED);
-        paintBrush.drawString("400", 0, 15);
+        paintBrush.drawString("" + (imageHeight - scaleBufferY), 0, scaleBufferY);
+        paintBrush.drawString("" + (imageHeight - scaleBufferY) / 2, 0, (imageHeight - scaleBufferY) / 2);
+        paintBrush.drawString("" + 0, 0, (imageHeight - scaleBufferY));
 
-        paintBrush.drawLine( startXofPanel, 0, startXofPanel, 400 - startXofPanel);
+        paintBrush.drawLine( scaleBufferX, 0, scaleBufferY, imageHeight - scaleBufferY);
+        paintBrush.drawLine( scaleBufferX, imageHeight - scaleBufferY, scaleBufferX + imageWidth, imageHeight - scaleBufferY);
         paintBrush.dispose();
         //repaint();
         return img;
