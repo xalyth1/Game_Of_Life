@@ -2,6 +2,8 @@ package life;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
@@ -38,6 +40,12 @@ public class GameOfLife extends JFrame implements Runnable{
 
     //int previousChartPanelX = chartPanelX + 1;
 
+    int imageWidth = 415;
+    int imageHeight = 415;
+    BufferedImage clearImg = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+    BufferedImage img = prepareBufferedImage(clearImg);
+    BufferedImage canvas = img;
+
 
     public GameOfLife() {
         init();
@@ -57,13 +65,13 @@ public class GameOfLife extends JFrame implements Runnable{
 
         int gridSize = 35;
 
-
+        this.cellWidth = 15;
+        this.cellHeight = 15;
 
         //System.out.println("Universe: " + universe);
         this.initComponents(universe.n);
 
-        this.cellWidth = 15;
-        this.cellHeight = 15;
+
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -96,6 +104,9 @@ public class GameOfLife extends JFrame implements Runnable{
             this.repaint();
 
             if (newSimulation) {
+                BufferedImage clearImg = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+                img = prepareBufferedImage(clearImg);
+                canvas = img;
                 break;
             }
 
@@ -107,7 +118,12 @@ public class GameOfLife extends JFrame implements Runnable{
         }
         System.out.println("wjscie z doSimulation()");
         newSimulation = true;
+        BufferedImage clearImg = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+        img = prepareBufferedImage(clearImg);
+        canvas = img;
+
     }
+
     @Override
     public void run() {
         System.out.println("run starts");
@@ -119,8 +135,6 @@ public class GameOfLife extends JFrame implements Runnable{
             doSimulation(universe, this);
         }
     }
-
-
 
     void initComponents(int n) {
         this.n = n;
@@ -209,9 +223,6 @@ public class GameOfLife extends JFrame implements Runnable{
         buttonPanel.setMaximumSize(new Dimension(200, 50));
 
 
-
-
-
         JPanel sliderPanel = new JPanel();
         sliderPanel.setLayout(new FlowLayout());
         sliderPanel.add(speedSlider);
@@ -234,15 +245,22 @@ public class GameOfLife extends JFrame implements Runnable{
             }
         });
 
-
-        JSlider cellsSlider = new JSlider(JSlider.HORIZONTAL, 5, 50 , 35);
+        JLabel cellsSliderLabel = new JLabel("Size of life cell", JLabel.CENTER);
+        JSlider cellsSlider = new JSlider(JSlider.HORIZONTAL, 5, 50 , this.cellWidth);
         //cellsSlider.setMaximumSize(new Dimension(200, 50));
 
         cellsSlider.setAlignmentX(0);
         cellsSlider.setAlignmentY(0);
-        cellsSlider.setEnabled(false);
+        cellsSlider.setEnabled(true);
+        cellsSlider.setName("Cell Size Slider");
+        Hashtable<Integer, JLabel> cellLabelTable = new Hashtable<Integer, JLabel>();
+        cellLabelTable.put(5, new JLabel("5px") );
+        cellLabelTable.put(15, new JLabel("15px") );
+        cellLabelTable.put(50, new JLabel("50px"));
+        cellsSlider.setLabelTable(cellLabelTable);
+        cellsSlider.setPaintLabels(true);
 
-
+        cellsSlider.addChangeListener(new CellListener(this));
 
         JPanel sliderPanel2 = new JPanel();
         sliderPanel2.setLayout(new FlowLayout());
@@ -251,34 +269,23 @@ public class GameOfLife extends JFrame implements Runnable{
         sliderPanel2.setAlignmentY(0);
         sliderPanel2.setMaximumSize(new Dimension(200, 50));
 
+//        int imageWidth = 415;
+//        int imageHeight = 415;
 
-        int imageWidth = 415;
-        int imageHeight = 415;
 
-
-        BufferedImage clearImg = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-        BufferedImage img = prepareBufferedImage(clearImg);
         JPanel chartPanel = new JPanel() {
-            BufferedImage canvas = img;
-            long counter = 0;
-
-
+            long counter = 2;
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D paintBrush = canvas.createGraphics();
 
-
-                //System.out.println("counter pc " + counter);
-
                 currentAlive = universe.algo.countAliveCells();
 
-
-
-
+                //25 is ybuffer in preprare... method. todo: make better funct. decomposition
 
                 if (counter > 1)
-                    paintBrush.drawLine( chartPanelX, imageHeight - previouslyAlive, chartPanelX + 1, imageHeight - currentAlive);
+                    paintBrush.drawLine( chartPanelX, imageHeight - previouslyAlive - 25, chartPanelX + 1, imageHeight - currentAlive - 25);
                 paintBrush.dispose();
                 repaint();
 
@@ -293,10 +300,13 @@ public class GameOfLife extends JFrame implements Runnable{
 
                 if (newSimulation) {
                     int previousChartPanelX = 1;
-                    chartPanelX = 2;
+                    chartPanelX = startXofPanel;
+
+
                 }
                 if (!started) {
                     //save last x
+
                 }
 
                 ++counter;
@@ -338,6 +348,7 @@ public class GameOfLife extends JFrame implements Runnable{
         optionsPanel.add(buttonPanel);
         optionsPanel.add(sliderPanel);
         optionsPanel.add(chooseColorButton);
+        optionsPanel.add(cellsSliderLabel);/////
         optionsPanel.add(sliderPanel2);
         //optionsPanel.add(chartPanel);
 
