@@ -19,6 +19,7 @@ public class GameOfLife extends JFrame implements Runnable{
 
     JPanel gridPanel;
     JPanel optionsPanel;
+    JPanel chartPanel;
     int n;
     int cellWidth;
     int cellHeight;
@@ -273,7 +274,7 @@ public class GameOfLife extends JFrame implements Runnable{
 //        int imageHeight = 415;
 
 
-        JPanel chartPanel = new JPanel() {
+        chartPanel = new JPanel() {
             long counter = 2;
             @Override
             protected void paintComponent(Graphics g) {

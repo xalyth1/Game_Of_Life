@@ -3,6 +3,7 @@ package life;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.*;
 
 public class CellListener implements ChangeListener {
     GameOfLife game;
@@ -16,6 +17,13 @@ public class CellListener implements ChangeListener {
         int x = source.getValue();
         game.cellWidth = x;
         game.cellHeight = x;
+
+
+        int frameWidth = game.optionsPanel.getWidth() + game.chartPanel.getWidth() + game.n * game.cellWidth;
+        int frameHeight = Math.max(Math.max(game.optionsPanel.getHeight(), game.chartPanel.getHeight()), game.n * game.cellHeight);
+
+        //System.out.println(frameWidth + " x " + frameHeight);
+        game.setSize(new Dimension(frameWidth, frameHeight));
 
 
 
